@@ -6,6 +6,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -67,6 +68,7 @@ export default function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="p-8 w-60 sm:w-[300] z-9999">
             <SheetTitle>Menu</SheetTitle>
+            <SheetHeader></SheetHeader>
             <SheetDescription>Veja nossos links</SheetDescription>
             <nav className="flex flex-col space-y-4 mt-6">
               {navItems.map((item) => (
