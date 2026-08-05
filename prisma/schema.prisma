@@ -77,16 +77,17 @@ model Subscriptions {
  
  
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  address String? @default("")
-  phone String? @default("")
-  status Boolean @default(true)
-  timeZone String?
-  stripe_customer_id String?
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String?   @unique
+  emailVerified       DateTime? @map("email_verified")
+  image               String?
+  address             String? @default("")
+  phone               String? @default("")
+  status              Boolean @default(true)
+  timeZone            String?
+  stripe_customer_id  String?
+  times               String[] @default([])
 
   subscription  Subscriptions?
   service       Service[]
