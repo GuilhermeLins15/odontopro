@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { LogInIcon, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
+import { handleRegister } from "../_action/login";
 
 const navItems = [
   { href: "#profissionais", label: "Profissional" },
@@ -19,8 +21,12 @@ const navItems = [
 ];
 
 export default function Header() {
+  const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const session = null;
+
+  async function handleLogin() {
+    await handleRegister("github");
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-999 py-4 px-6 bg-white shadow-md">
@@ -35,18 +41,20 @@ export default function Header() {
               key={item.href}
               className="bg-transparent hover:bg-transparent text-black shadow-none"
             >
-              <Link href={item.href} className="text-base">{item.label}</Link>
+              <Link href={item.href} className="text-base">
+                {item.label}
+              </Link>
             </Button>
           ))}
           {session ? (
             <Link
               href="/dashboard"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-1 rounded-md px-3"
             >
               Acessar clinica
             </Link>
           ) : (
-            <Button>
+            <Button onClick={handleLogin}>
               <LogInIcon />
               Portal da clinica
             </Button>
@@ -80,15 +88,17 @@ export default function Header() {
                   <Link href={item.href}>{item.label}</Link>
                 </Button>
               ))}
-              {session ? (
+              {status === "loading" ? (
+                <></>
+              ) : session ? (
                 <Link
                   href="/dashboard"
-                  className="flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-1 rounded-md px-3"
                 >
                   Acessar clinica
                 </Link>
               ) : (
-                <Button>
+                <Button onClick={handleLogin}>
                   <LogInIcon />
                   Portal da clinica
                 </Button>
