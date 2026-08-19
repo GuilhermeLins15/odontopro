@@ -1,0 +1,34 @@
+"use server";
+
+import prisma from "@/lib/prisma";
+
+interface GetUserDataProps {
+  userId: string;
+}
+
+export async function getUserData({ userId }: GetUserDataProps) {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        subscription: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    console.log(user);
+    return user;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
