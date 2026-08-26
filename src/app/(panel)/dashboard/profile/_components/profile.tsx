@@ -1,6 +1,6 @@
 "use client";
 
-import { useProfileForm } from "./profile-form";
+import { ProfileFormData, useProfileForm } from "./profile-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -13,7 +13,6 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -21,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import imgTest from "../../../../../../public/foto1.png";
 import {
@@ -34,13 +33,61 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowRight } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 export default function ProfileContent() {
+  const [selectedHours, setSelectedHours] = useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const form = useProfileForm();
 
+  function generateTimeSlots(): string[] {
+    const hours: string[] = [];
+    for (let i = 8; i <= 24; i++) {
+      for (let j = 0; j < 2; j++) {
+        const hour = i.toString().padStart(2, "0");
+        const minute = (j * 30).toString().padStart(2, "0");
+        hours.push(`${hour}:${minute}`);
+      }
+    }
+
+    return hours;
+  }
+
+  const hours = generateTimeSlots();
+
+  function toggleHour(hour: string) {
+    setSelectedHours((prev) =>
+      prev.includes(hour)
+        ? prev.filter((h) => h !== hour)
+        : [...prev, hour].sort(),
+    );
+  }
+
+  const timeZones = Intl.supportedValuesOf("timeZone").filter(
+    (zone) =>
+      zone.startsWith("America/Sao_Paulo") ||
+      zone.startsWith("America/Fortaleza") ||
+      zone.startsWith("America/Recife") ||
+      zone.startsWith("America/Bahia") ||
+      zone.startsWith("America/Belem") ||
+      zone.startsWith("America/Manaus") ||
+      zone.startsWith("America/Cuiaba") ||
+      zone.startsWith("America/Boa_Vista"),
+  );
+
+  async function onSubmit(values: ProfileFormData) {
+    console.log("ENTROU NO SUBMIT", values);
+  }
+  
   return (
-    <div className="space-y-6">
+    <div className="mx-auto space-y-6">
       <Form {...form}>
-        <form>
+        <form
+          onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log("ERROS:", errors);
+          })}
+        >
           <Card>
             <CardHeader>
               <CardTitle className="text-sm sm:text-2xl font-bold">
@@ -120,8 +167,8 @@ export default function ProfileContent() {
 
                       <FormControl>
                         <Select
-                          value={field.value}
                           onValueChange={field.onChange}
+                          defaultValue={field.value ? "active" : "inactive"}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecione o status da clínica" />
@@ -148,12 +195,12 @@ export default function ProfileContent() {
                   <Label className="font-semibold">
                     Configurar horário da clinica
                   </Label>
-                  <Dialog>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger
                       render={
                         <Button
                           variant="outline"
-                          className="w-full bg-amber-600 justify-between"
+                          className="w-full justify-between"
                         />
                       }
                     >
@@ -168,12 +215,78 @@ export default function ProfileContent() {
                           clínica:
                         </DialogDescription>
                       </DialogHeader>
-                      <select className="py-4">
-                        <p>Selecione os horários disponíveis:</p>
-                      </select>
+                      <div className="py-4">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Clique nos horários abaixo para marcar ou desmarcar:
+                        </p>
+                        <div className="grid grid-cols-5 gap-2">
+                          {hours.map((hour) => (
+                            <Button
+                              key={hour}
+                              variant="outline"
+                              className={cn(
+                                "h-10 rounded-sm",
+                                selectedHours.includes(hour) &&
+                                  "border-2 border-emerald-500 text-primary",
+                              )}
+                              onClick={() => toggleHour(hour)}
+                            >
+                              {hour}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Button
+                          className="w-full rounded-sm h-10"
+                          onClick={() => setDialogOpen(false)}
+                        >
+                          Salvar horários
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="timeZone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-semibold">
+                        Selecione o fuso horário
+                      </FormLabel>
+
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione o seu fuso horário" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {timeZones.map((zone) => (
+                              <SelectItem key={zone} value={zone}>
+                                {zone}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-emerald-500 hover:bg-emerald-400"
+                >
+                  Salvar alterações
+                </Button>
               </div>
             </CardContent>
           </Card>
