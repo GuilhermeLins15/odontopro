@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+
 import {
   Controller,
   FormProvider,
@@ -21,9 +22,8 @@ type FormFieldContextValue<
   name: TName;
 };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue,
-);
+const FormFieldContext =
+  React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
 
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
@@ -41,13 +41,10 @@ const FormField = <
 function useFormField() {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
-  const { getFieldState, formState } = useFormContext();
 
-  const fieldState = getFieldState(fieldContext.name, formState);
+  const { formState } = useFormContext();
 
-  if (!fieldContext) {
-    throw new Error("useFormField deve ser usado dentro de <FormField>");
-  }
+  const error = formState.errors[fieldContext.name];
 
   const { id } = itemContext;
 
@@ -57,7 +54,7 @@ function useFormField() {
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
-    ...fieldState,
+    error,
   };
 }
 
@@ -65,11 +62,13 @@ type FormItemContextValue = {
   id: string;
 };
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue,
-);
+const FormItemContext =
+  React.createContext<FormItemContextValue>({} as FormItemContextValue);
 
-function FormItem({ className, ...props }: React.ComponentProps<"div">) {
+function FormItem({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   const id = React.useId();
 
   return (
@@ -83,7 +82,10 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FormLabel({ className, ...props }: React.ComponentProps<"label">) {
+function FormLabel({
+  className,
+  ...props
+}: React.ComponentProps<"label">) {
   const { error, formItemId } = useFormField();
 
   return (
@@ -136,7 +138,9 @@ function FormMessage({
 }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField();
 
-  const body = error ? String(error.message ?? "") : children;
+  const body = error
+    ? String(error.message ?? "")
+    : children;
 
   if (!body) {
     return null;
@@ -154,4 +158,12 @@ function FormMessage({
   );
 }
 
-export { Form, FormField, FormItem, FormLabel, FormControl, FormMessage };
+export {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+};
+
