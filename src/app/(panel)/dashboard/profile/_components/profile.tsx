@@ -41,8 +41,10 @@ import {
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@/generated/prisma/client";
+import { updateProfile } from "../_actions/update-profile";
+import { toast } from "sonner";
 
-
+import { extractedPhoneNumber, formatPhone } from "@/utils/formatPhone";
 
 type UserWithSubscription = Prisma.UserGetPayload<{
   include: {
@@ -55,11 +57,18 @@ interface ProfileContentProps {
 }
 
 export default function ProfileContent({ user }: ProfileContentProps) {
-
-  const [selectedHours, setSelectedHours] = useState<string[]>(user.times ?? []);
+  const [selectedHours, setSelectedHours] = useState<string[]>(
+    user.times ?? [],
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const form = useProfileForm({name: user.name, address: user.address, phone: user.phone, status: user.status, timeZone: user.timeZone});
+  const form = useProfileForm({
+    name: user.name,
+    address: user.address,
+    phone: user.phone,
+    status: user.status,
+    timeZone: user.timeZone,
+  });
 
   function generateTimeSlots(): string[] {
     const hours: string[] = [];
@@ -99,11 +108,23 @@ export default function ProfileContent({ user }: ProfileContentProps) {
   );
 
   async function onSubmit(values: ProfileFormData) {
-    const profileData = {
-      ...values,
-      times: selectedHours,
-    };
-    console.log("ENTROU NO SUBMIT", profileData);
+    const extractValue = extractedPhoneNumber(values.phone || "") ;
+
+    const response = await updateProfile({
+      name: values.name,
+      address: values.address,
+      phone: extractValue,
+      status: values.status === "active" ? true : false,
+      timeZone: values.timeZone,
+      times: selectedHours || [],
+    });
+
+    if (response.error) {
+      toast.error(response.error, { closeButton: true });
+      return;
+    }
+
+    toast.success(response.data);
   }
 
   return (
@@ -212,7 +233,14 @@ export default function ProfileContent({ user }: ProfileContentProps) {
                       </FormLabel>
 
                       <FormControl>
-                        <Input placeholder="Digite o telefone..." {...field} />
+                        <Input
+                          {...field}
+                          placeholder="(67) 99912-3456"
+                          onChange={(e) => {
+                            const formattedPhone = formatPhone(e.target.value);
+                            field.onChange(formattedPhone);
+                          }}
+                        />
                       </FormControl>
 
                       {fieldState.error && (
