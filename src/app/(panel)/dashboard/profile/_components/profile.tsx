@@ -108,7 +108,7 @@ export default function ProfileContent({ user }: ProfileContentProps) {
   );
 
   async function onSubmit(values: ProfileFormData) {
-    const extractValue = extractedPhoneNumber(values.phone || "") ;
+    const extractValue = extractedPhoneNumber(values.phone || "");
 
     const response = await updateProfile({
       name: values.name,
