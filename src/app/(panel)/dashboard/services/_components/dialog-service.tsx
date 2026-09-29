@@ -5,7 +5,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useDialogServiceForm } from "./dialog-servise-form";
+import {
+  useDialogServiceForm,
+  DialogServiceFormData,
+} from "./dialog-servise-form";
 import {
   Form,
   FormControl,
@@ -17,8 +20,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import { convertRealToCents } from "@/utils/convertCurrency";            
+
 export default function DialogService() {
   const form = useDialogServiceForm();
+
+  async function onSubmit(values: DialogServiceFormData) {
+    convertRealToCents(values.price);
+    console.log(values);
+  }
+
+  function changeCurrency(event: React.ChangeEvent<HTMLInputElement>) {
+    let { value } = event.target;
+
+    value = value.replace(/\D/g, "");
+
+    if(value) {
+      value = (parseInt(value, 10) / 100).toFixed(2);
+      value = value.replace(".", ",");
+      value = value.replace(/(\B)(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    event.target.value = value;
+    form.setValue("price", value);
+  }
 
   return (
     <>
@@ -27,7 +52,7 @@ export default function DialogService() {
         <DialogDescription>Adicione um novo serviço</DialogDescription>
       </DialogHeader>
       <Form {...form}>
-        <form className="space-y-2">
+        <form className="space-y-2" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-col">
             <FormField
               control={form.control}
@@ -53,7 +78,7 @@ export default function DialogService() {
                     Valor do serviço:
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: 120,00" {...field} />
+                    <Input placeholder="Ex: 120,00" {...field} onChange={changeCurrency} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,7 +124,10 @@ export default function DialogService() {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full rounded-sm mt-2 font-semibold text-white">
+            <Button
+              type="submit"
+              className="w-full rounded-sm mt-2 font-semibold text-white"
+            >
               Adicionar serviço
             </Button>
           </div>
