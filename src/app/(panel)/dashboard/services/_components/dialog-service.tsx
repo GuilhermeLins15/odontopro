@@ -20,14 +20,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { convertRealToCents } from "@/utils/convertCurrency";            
+import { convertRealToCents } from "@/utils/convertCurrency";
+import { createNewService } from "../_actions/create-service";
+import { toast } from "sonner";
+import { useState } from "react";
 
-export default function DialogService() {
+interface DialogServiceProps {
+  closeModal: () => void;
+}
+
+export default function DialogService({ closeModal }: DialogServiceProps) {
   const form = useDialogServiceForm();
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(values: DialogServiceFormData) {
-    convertRealToCents(values.price);
-    console.log(values);
+    setLoading(true);
+    const priceInCents = convertRealToCents(values.price);
+    const hours = parseInt(values.hours) || 0;
+    const minutes = parseInt(values.minutes) || 0;
+    const duration = hours * 60 + minutes;
+
+    const response = await createNewService({
+      name: values.name,
+      price: priceInCents,
+      duration: duration,
+    });
+
+    setLoading(false);
+
+    if (response.error) {
+      toast.error(response.error);
+      return;
+    }
+
+    toast.success("Serviço adicionado com sucesso!");
+    closeModal();
   }
 
   function changeCurrency(event: React.ChangeEvent<HTMLInputElement>) {
@@ -35,7 +62,7 @@ export default function DialogService() {
 
     value = value.replace(/\D/g, "");
 
-    if(value) {
+    if (value) {
       value = (parseInt(value, 10) / 100).toFixed(2);
       value = value.replace(".", ",");
       value = value.replace(/(\B)(?=(\d{3})+(?!\d))/g, ".");
@@ -78,7 +105,11 @@ export default function DialogService() {
                     Valor do serviço:
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: 120,00" {...field} onChange={changeCurrency} />
+                    <Input
+                      placeholder="Ex: 120,00"
+                      {...field}
+                      onChange={changeCurrency}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -94,12 +125,7 @@ export default function DialogService() {
                   <FormItem className="my-2">
                     <FormLabel className="font-semibold">Horas:</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ex: 120,00"
-                        type="number"
-                        min="0"
-                        {...field}
-                      />
+                      <Input placeholder="1" type="number" min="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,12 +138,7 @@ export default function DialogService() {
                   <FormItem className="my-2">
                     <FormLabel className="font-semibold">Minutos:</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ex: 120,00"
-                        type="number"
-                        min="0"
-                        {...field}
-                      />
+                      <Input placeholder="0" type="number" min="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -127,8 +148,9 @@ export default function DialogService() {
             <Button
               type="submit"
               className="w-full rounded-sm mt-2 font-semibold text-white"
+              disabled={loading}
             >
-              Adicionar serviço
+              {loading ? "Adicionando..." : "Adicionar serviço"}
             </Button>
           </div>
         </form>
