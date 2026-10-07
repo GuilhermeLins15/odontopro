@@ -12,3 +12,9 @@ export function convertRealToCents(value: string) {
   const priceInCents = Math.round(numericValue * 100); 
   return priceInCents;
 }
+
+export function convertCentsToReal(value: string) {
+  const numericValue = parseFloat(value.replace(".", ","));
+  const priceInReal = `R$ ${ (numericValue / 100).toFixed(2).replace('.', ',') }`; 
+  return priceInReal;
+}

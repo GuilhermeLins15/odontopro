@@ -16,7 +16,9 @@ export async function getAllServices({ userId }: { userId: string }) {
         status: true,
       },
     });
-    return services;
+    return {
+      data: services,
+    };
   } catch (error) {
     console.error("Erro ao buscar serviços:", error);
     return {
