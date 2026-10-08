@@ -24,13 +24,25 @@ import { convertRealToCents } from "@/utils/convertCurrency";
 import { createNewService } from "../_actions/create-service";
 import { toast } from "sonner";
 import { useState } from "react";
+import { updateService } from "../_actions/update-service";
 
 interface DialogServiceProps {
   closeModal: () => void;
+  serviceId?: string;
+  initialValues?: {
+    name: string;
+    price: string;
+    hours: string;
+    minutes: string;
+  };
 }
 
-export default function DialogService({ closeModal }: DialogServiceProps) {
-  const form = useDialogServiceForm();
+export default function DialogService({
+  closeModal,
+  serviceId,
+  initialValues,
+}: DialogServiceProps) {
+  const form = useDialogServiceForm({ initialValues });
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(values: DialogServiceFormData) {
@@ -39,6 +51,19 @@ export default function DialogService({ closeModal }: DialogServiceProps) {
     const hours = parseInt(values.hours) || 0;
     const minutes = parseInt(values.minutes) || 0;
     const duration = hours * 60 + minutes;
+
+    if (serviceId) {
+      await updateServiceById({
+        serviceId,
+        name: values.name,
+        priceInCents,
+        duration,
+      });
+      setLoading(false);
+      toast.success("Serviço atualizado com sucesso!");
+      handleCloseModal();
+      return;
+    }
 
     const response = await createNewService({
       name: values.name,
@@ -54,6 +79,40 @@ export default function DialogService({ closeModal }: DialogServiceProps) {
     }
 
     toast.success("Serviço adicionado com sucesso!");
+    handleCloseModal();
+  }
+
+  async function updateServiceById({
+    serviceId,
+    name,
+    priceInCents,
+    duration,
+  }: {
+    serviceId: string;
+    name: string;
+    priceInCents: number;
+    duration: number;
+  }) {
+    const response = await updateService({
+      serviceId,
+      name,
+      price: priceInCents,
+      duration,
+    });
+
+    setLoading(false);
+
+    if (response.error) {
+      toast.error(response.error);
+      return;
+    }
+
+    toast(response.data);
+    handleCloseModal();
+  }
+
+  function handleCloseModal() {
+    form.reset();
     closeModal();
   }
 
@@ -150,7 +209,14 @@ export default function DialogService({ closeModal }: DialogServiceProps) {
               className="w-full rounded-sm mt-2 font-semibold text-white"
               disabled={loading}
             >
-              {loading ? "Adicionando..." : "Adicionar serviço"}
+              {" "}
+              {initialValues
+                ? loading
+                  ? "Atualizando..."
+                  : "Atualizar serviço"
+                : loading
+                  ? "Adicionando..."
+                  : "Adicionar serviço"}
             </Button>
           </div>
         </form>
